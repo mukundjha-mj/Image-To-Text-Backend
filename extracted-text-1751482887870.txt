@@ -1,0 +1,8 @@
+* DTLS Architecture:
+DTLS ARCHITECTURE
+Application Layer
+DTLS Record Layer
+(Fragmentation, Compression, MAC, Encryption)
+Handshake Protocol Layer
+(Key Exchange, Authentication, Cipher Spec, Alerts
+Transport Layer (UDP)
