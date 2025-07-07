@@ -1,4 +1,0 @@
-The recognize the method will return a promise, which will resolve with the
-text that has been extracted from the image. You can then access this text by
-using the then method and logging the text property of the result object to
-the console.

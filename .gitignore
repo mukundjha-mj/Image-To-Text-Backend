@@ -11,3 +11,6 @@ yarn-error.log*
 
 # OS generated
 Thumbs.db
+
+uploads/
+Extracted/
