@@ -1,11 +1,15 @@
-import { Router } from "express";
+import express from "express";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import z from "zod";
 import dotenv from "dotenv";
-import { userModel } from "../DB/db";
+import { userModel } from "../DB/db.js";
 
-userRoutet.post('/signup', async (req, res) => {
+dotenv.config();
+
+const userRouter = express.Router();
+
+userRouter.post('/signup', async (req, res) => {
     const requireBody = z.object({
         email: z.string().min(3).max(30).email(),
         password: z.string().min(6).max(20),
@@ -15,7 +19,7 @@ userRoutet.post('/signup', async (req, res) => {
 
     const parseDataWithSuccess = requireBody.safeParse(req.body);
 
-    if (!parseDataWithSuccess) {
+    if (!parseDataWithSuccess.success) {
         res.status(403).json({
             message: "Incorrect Format",
             error: parseDataWithSuccess.error
@@ -30,7 +34,7 @@ userRoutet.post('/signup', async (req, res) => {
         const hashedPassword = await bcrypt.hash(password, 5);
         await userModel.create({
             email: email,
-            password: password,
+            password: hashedPassword,
             firstName: firstName,
             lastName: lastName
         })
@@ -45,3 +49,36 @@ userRoutet.post('/signup', async (req, res) => {
         res.json({ message: "!Welcome" })
     }
 })
+
+userRouter.post('/signin', async (req, res) => {
+    const { email, password } = req.body;
+
+    const findUser = await userModel.findOne({
+        email: email
+    })
+    
+    if(!findUser){
+        res.status(404).json({
+            message: "User Not Found"
+        })
+        return
+    }
+    
+    const passwordMatch = await bcrypt.compare(password, findUser.password);
+
+    if(passwordMatch){
+        const token = jwt.sign({
+            id: findUser._id.toString()
+        }, process.env.JWT_SECRET);
+        res.json({
+            token: token
+        });
+    } else {
+        res.status(403).json({
+            message: "Incorrect Credentials"
+        })
+    }
+})
+
+
+export { userRouter };

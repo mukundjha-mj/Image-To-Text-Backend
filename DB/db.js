@@ -1,4 +1,4 @@
-const mongoose = require("mongoose")
+import mongoose from "mongoose";
 const Schema = mongoose.Schema;
 const ObjectId = mongoose.Types.ObjectId;
 
@@ -29,7 +29,7 @@ const userModel = mongoose.model('user', userSchema);
 const extractedTextModel = mongoose.model('extractedText', extractedTextSchema);
 const adminModel = mongoose.model('admin', adminSchema);
 
-module.exports = {
+export {
     userModel,
     extractedTextModel,
     adminModel

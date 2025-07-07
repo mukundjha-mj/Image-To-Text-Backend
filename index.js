@@ -6,8 +6,16 @@ import express from "express";
 import multer from "multer";
 import cors from "cors";
 import path from "path";
+import mongoose from "mongoose";
+import dotenv from "dotenv";
+import { userRouter } from './Routes/user.routes.js';
+import { uploadRouter } from './Routes/upload.routes.js';
+
+dotenv.config();
 
 const app = express();
+app.use(express.json());
+const PORT = 3000
 
 // Enable CORS for all routes
 app.use(cors({
@@ -16,19 +24,9 @@ app.use(cors({
     allowedHeaders: ["Content-Type", "Authorization"]
 }));
 
-app.use(express.json());
-const PORT = 3000
 
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, "uploads/");
-    },
-    filename: (req, file, cb) => {
-        cb(null, Date.now() + path.extname(file.originalname));
-    },
-});
-
-const upload = multer({ storage });
+app.use('/api/v1/user', userRouter)
+app.use('/api/v1/upload', uploadRouter)
 
 app.get("/", (req, res) => {
     res.json({
@@ -36,45 +34,14 @@ app.get("/", (req, res) => {
     });
 });
 
-app.post("/upload", upload.single("image"), async (req, res) => {
-    if (!req.file) {
-        return res.status(400).json({ error: "No file uploaded" });
-    }
 
-    console.log('File uploaded:', req.file.filename);
-    
-    const imagePath = req.file.path;
-    const outputFile = `extracted-text-${Date.now()}.txt`;
 
-    try {
-        console.log('Starting OCR processing...');
-        const result = await Tesseract.recognize(imagePath);
-        const extractedText = result.data.text;
+async function main() {
+    await mongoose.connect(process.env.DATABASE_URL)
 
-        // Save to text file
-        fs.writeFileSync(outputFile, extractedText, 'utf8');
+    app.listen(PORT, () => {
+        console.log("server is running on http://localhost:3000");
+    })
+}
 
-        console.log('Extracted text:');
-        console.log(extractedText);
-        console.log(`Text has been saved to: ${outputFile}`);
-
-        res.json({
-            message: "File uploaded and text extracted successfully!",
-            filename: req.file.filename,
-            extractedText: extractedText,
-            textFile: outputFile
-        });
-
-    } catch (error) {
-        console.error('Error processing image:', error);
-        res.status(500).json({ 
-            error: "Failed to extract text from image",
-            details: error.message 
-        });
-    }
-});
-
-app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
-});
-
+main()
